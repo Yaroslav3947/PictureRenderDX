@@ -6,7 +6,7 @@
 
 class Renderer {
  public:
-  Renderer(Window& window);
+  Renderer(HWND &hwnd);
 
   void beginFrame();
   void endFrame();
@@ -14,8 +14,14 @@ class Renderer {
   ComPtr<ID3D11Device> getDevice() { return m_device; }
   ComPtr<ID3D11DeviceContext> getDeviceContext() { return m_deviceContext; }
 
+  public:
+  HRESULT
+  ConvertSampleToTexture(IMFSample *pSample, ComPtr<ID3D11Texture2D> &pTexture);
+  HRESULT
+  RenderTextureToWindow(ComPtr<ID3D11Texture2D> pTexture);
+
  private:
-  void createDevice(Window& window);
+  void createDevice(HWND &hwnd);
   void createRenderTarget();
 
  private:

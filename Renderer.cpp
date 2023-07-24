@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
-Renderer::Renderer(Window& window) {
-  createDevice(window);
+Renderer::Renderer(HWND &hwnd) {
+  createDevice(hwnd);
   createRenderTarget();
 }
 
@@ -24,13 +24,22 @@ void Renderer::endFrame() {
   m_swapChain->Present(1, 0);
 }
 
-void Renderer::createDevice(Window& window) {
+HRESULT Renderer::ConvertSampleToTexture(IMFSample *pSample,
+                                         ComPtr<ID3D11Texture2D> &pTexture) {
+  return E_NOTIMPL;
+}
+
+HRESULT Renderer::RenderTextureToWindow(ComPtr<ID3D11Texture2D> pTexture) {
+  return E_NOTIMPL;
+}
+
+void Renderer::createDevice(HWND &hwnd) {
   // Define our swap chain
   DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
   swapChainDesc.BufferCount = 1;
   swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  swapChainDesc.OutputWindow = window.getHandle();
+  swapChainDesc.OutputWindow = hwnd;
   swapChainDesc.SampleDesc.Count = 1;
   swapChainDesc.Windowed = true;
 

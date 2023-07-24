@@ -105,7 +105,7 @@ void Picture::createRenderStates(Renderer& renderer) {
 
 void Picture::loadTexture(Renderer& renderer) {
   HRESULT hr = DirectX::CreateWICTextureFromFile(renderer.getDevice().Get(),
-                                                 L"Picture.png", nullptr,
+                                                 L"Image.jpg", nullptr,
                                                  m_texture.GetAddressOf());
 
   if (FAILED(hr)) {

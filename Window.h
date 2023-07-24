@@ -1,15 +1,16 @@
 #pragma once
 
 #include "WinInclude.h"
+//#include "App.h"
 
 
 class Window {
  public:
-  Window(int width, int height);
+  Window();
   HWND getHandle() { return m_hwnd; }
 
  private:
-  void CreateWnd(int width, int height);
+  void CreateWnd();
 
  private:
   HWND m_hwnd;

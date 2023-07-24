@@ -1,13 +1,26 @@
 #include "Window.h"
+#include "App.h"
+#include "VideoPlayer.h"
+
+VideoPlayer *pVideoPlayer = nullptr;
 
 LRESULT CALLBACK WinProc(HWND handle, UINT msg, WPARAM wparam, LPARAM lparam);
 void CreateMenu(HWND hwnd);
 void HandleMenuMessage(HWND hwnd, WPARAM wparam);
 void OpenFile(HWND hwnd);
 
-Window::Window(int width, int height) { this->CreateWnd(width, height); }
+Window::Window() {
+  this->CreateWnd();
 
-void Window::CreateWnd(int width, int height) {
+  HRESULT hr = VideoPlayer::CreateInstance(m_hwnd, &pVideoPlayer);
+  if (FAILED(hr)) {
+    return;
+  }
+}
+
+void Window::CreateWnd() {
+  const size_t height = 600;
+  const size_t width = 800;
   WNDCLASS wc = {0};
   wc.style = CS_OWNDC;
   wc.lpfnWndProc = WinProc;
@@ -60,18 +73,20 @@ void HandleMenuMessage(HWND hwnd, WPARAM wparam) {
 }
 
 void OpenFile(HWND hwnd) {
-  OPENFILENAME ofn;
-  char szFileName[MAX_PATH] = "";
+  OPENFILENAMEW ofn;
+  wchar_t szFileName[MAX_PATH] = {0};  // Use wchar_t for the file name.
 
   ZeroMemory(&ofn, sizeof(ofn));
   ofn.lStructSize = sizeof(ofn);
   ofn.hwndOwner = hwnd;
-  ofn.lpstrFilter = "All Files (*.*)\0*.*\0";
-  ofn.lpstrFile = szFileName;
+  ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";  // Note the 'L' before the
+                                                // string for wide characters.
+  ofn.lpstrFile = szFileName;  // Use wchar_t* for the file name.
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
-  if (GetOpenFileName(&ofn)) {
-    ////TODO: draw a picture
+  if (GetOpenFileNameW(&ofn)) {
+    pVideoPlayer->OpenURL(szFileName);
   }
 }
+
