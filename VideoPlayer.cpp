@@ -1,9 +1,9 @@
 #include "videoplayer.h"
 
-VideoPlayer::VideoPlayer(HWND hVideo )
-    : pReader_(nullptr),
-      //pDxRender_(nullptr),
-      hwndVideo_(hVideo),
+VideoPlayer::VideoPlayer(HWND hwmd)
+    : m_reader(nullptr),
+      m_renderer(nullptr),
+      m_hwnd(hwmd),
       m_pSession(nullptr) {
 }
 
@@ -45,11 +45,11 @@ HRESULT VideoPlayer::Initialize() {
   if (FAILED(hr)) {
     return hr;
   }
-
-  //pDxRender_ = std::make_unique<DxRender>();
-  /*if (pDxRender_ == nullptr) {
+  /// TODO: init or cmp with idea hw to make it all work
+  m_renderer = std::make_unique<Renderer>(m_hwnd);
+  if (m_renderer == nullptr) {
     return E_FAIL;
-  }*/
+  }
 
   return S_OK;
 }
@@ -120,9 +120,9 @@ HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
                                  static_cast<IMFSourceReaderCallback *>(this));
     if (SUCCEEDED(hr)) {
       hr = MFCreateSourceReaderFromURL(sURL, pAttributes.Get(),
-                                       pReader_.GetAddressOf());
+                                       m_reader.GetAddressOf());
       if (SUCCEEDED(hr)) {
-        hr = pReader_->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0,
+        hr = m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0,
                                   nullptr, nullptr, nullptr, nullptr);
         return hr;
       }
@@ -193,15 +193,27 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
   }
 
   if (pSample) {
-    ComPtr<ID3D11Texture2D> pTexture;
-    HRESULT hr = m_renderer->ConvertSampleToTexture(pSample, pTexture);
+    m_renderer->beginFrame();
+
+    ////TODO: draw samples to the swapChain
+
+    ID3D11Texture2D *pVideoTexture = nullptr;
+    HRESULT hr = m_renderer->ExtractVideoFrame(pSample, &pVideoTexture);
     if (FAILED(hr)) {
       return hr;
     }
-    ////TODO: add delay
-    m_renderer->RenderTextureToWindow(pTexture);
 
-    hr = pReader_->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
+
+    hr =m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
+    if (FAILED(hr)) {
+      return hr;
+    }
+    m_renderer->endFrame();
+
+    
+    //TODO: add delay
+
+    hr = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
     if (FAILED(hr)) {
       return hr;
     }

@@ -1,8 +1,8 @@
 #include "Window.h"
 #include "App.h"
-#include "VideoPlayer.h"
+//#include "VideoPlayer.h"
 
-VideoPlayer *pVideoPlayer = nullptr;
+
 
 LRESULT CALLBACK WinProc(HWND handle, UINT msg, WPARAM wparam, LPARAM lparam);
 void CreateMenu(HWND hwnd);
@@ -12,10 +12,10 @@ void OpenFile(HWND hwnd);
 Window::Window() {
   this->CreateWnd();
 
-  HRESULT hr = VideoPlayer::CreateInstance(m_hwnd, &pVideoPlayer);
-  if (FAILED(hr)) {
+
+  /*if (FAILED(hr)) {
     return;
-  }
+  }*/
 }
 
 void Window::CreateWnd() {
@@ -33,7 +33,7 @@ void Window::CreateWnd() {
                         100, width, height, nullptr, nullptr, nullptr, nullptr);
 
   // Create and attach the menu to the window
-  CreateMenu(m_hwnd);
+  //CreateMenu(m_hwnd);
 }
 
 void CreateMenu(HWND hwnd) {
@@ -64,6 +64,7 @@ LRESULT CALLBACK WinProc(HWND handle, UINT msg, WPARAM wparam, LPARAM lparam) {
 void HandleMenuMessage(HWND hwnd, WPARAM wparam) {
   switch (LOWORD(wparam)) {
     case 1:  // Open File option
+        ///TODO: app enum
       OpenFile(hwnd);
       break;
 
@@ -74,19 +75,19 @@ void HandleMenuMessage(HWND hwnd, WPARAM wparam) {
 
 void OpenFile(HWND hwnd) {
   OPENFILENAMEW ofn;
-  wchar_t szFileName[MAX_PATH] = {0};  // Use wchar_t for the file name.
+  wchar_t szFileName[MAX_PATH] = {0};  
 
   ZeroMemory(&ofn, sizeof(ofn));
   ofn.lStructSize = sizeof(ofn);
   ofn.hwndOwner = hwnd;
-  ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";  // Note the 'L' before the
-                                                // string for wide characters.
-  ofn.lpstrFile = szFileName;  // Use wchar_t* for the file name.
+  ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";  
+                                                
+  ofn.lpstrFile = szFileName;  
   ofn.nMaxFile = MAX_PATH;
   ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
   if (GetOpenFileNameW(&ofn)) {
-    pVideoPlayer->OpenURL(szFileName);
+    
   }
 }
 
