@@ -4,6 +4,8 @@
 
 #include "Window.h"
 
+#include <d2d1.h>
+
 class Renderer {
  public:
   Renderer(HWND &hwnd);

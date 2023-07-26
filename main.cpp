@@ -16,7 +16,7 @@ int CALLBACK WinMain(HINSTANCE appInstance, HINSTANCE prevInstance,
   HWND hwnd = window.getHandle();
 
   HRESULT hr = VideoPlayer::CreateInstance(hwnd, &pVideoPlayer);
-  const WCHAR* filePath = L"C:/Users/Yaroslav/Desktop/test.mp4";
+  const WCHAR* filePath = L"C:/Users/Yaroslav/Desktop/video.mp4";
 
   pVideoPlayer->OpenURL(filePath);
   

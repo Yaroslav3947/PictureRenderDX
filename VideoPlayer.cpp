@@ -1,5 +1,7 @@
 #include "videoplayer.h"
 
+void DebugPrint(const char *message) { OutputDebugStringA(message); }
+
 VideoPlayer::VideoPlayer(HWND hwmd)
     : m_reader(nullptr),
       m_renderer(nullptr),
@@ -115,6 +117,11 @@ HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
   // Create the source reader
   ComPtr<IMFAttributes> pAttributes;
   HRESULT hr = MFCreateAttributes(pAttributes.GetAddressOf(), 1);
+
+  hr = pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
+
+  hr = pAttributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
+
   if (SUCCEEDED(hr)) {
     hr = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
                                  static_cast<IMFSourceReaderCallback *>(this));
@@ -192,30 +199,28 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
     return S_OK;
   }
 
+  DebugPrint("OnReadSample()\n");
+
   if (pSample) {
-    m_renderer->beginFrame();
-
-    ////TODO: draw samples to the swapChain
-
     ID3D11Texture2D *pVideoTexture = nullptr;
     HRESULT hr = m_renderer->ExtractVideoFrame(pSample, &pVideoTexture);
     if (FAILED(hr)) {
+      DebugPrint("OnReadSample():ERROR\n");
       return hr;
     }
 
 
-    hr =m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
-    if (FAILED(hr)) {
+    //hr = m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
+    /*if (FAILED(hr)) {
       return hr;
-    }
-    m_renderer->endFrame();
+    }*/
 
     
     //TODO: add delay
 
-    hr = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
-    if (FAILED(hr)) {
-      return hr;
+    hrStatus = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
+    if (FAILED(hrStatus)) {
+      return hrStatus;
     }
   }
 

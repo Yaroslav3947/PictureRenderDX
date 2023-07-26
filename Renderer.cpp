@@ -111,97 +111,68 @@ void Renderer::endFrame() {
 
 HRESULT Renderer::ExtractVideoFrame(IMFSample* pSample,
                                     ID3D11Texture2D** ppVideoTexture) {
-  if (!pSample  || !ppVideoTexture) return E_INVALIDARG;
+  if (!pSample || !ppVideoTexture) return E_INVALIDARG;
 
-  HRESULT hr = S_OK;
-
-  // Step 1: Get the video frame data from the IMFSample
-  BYTE* pFrameData = nullptr;
-  DWORD frameDataSize = 0;
-  hr = pSample->ConvertToContiguousBuffer(&pFrameData);
+  ComPtr<IMFMediaBuffer> pBuffer;
+  HRESULT hr = pSample->ConvertToContiguousBuffer(pBuffer.GetAddressOf());
   if (FAILED(hr)) return hr;
 
-  hr = pSample->GetTotalLength(&frameDataSize);
+  BYTE* pData = nullptr;
+  DWORD dwMaxLength = 0;
+  DWORD dwCurrentLength = 0;
+  hr = pBuffer->Lock(&pData, &dwMaxLength, &dwCurrentLength);
+  if (FAILED(hr)) return hr;
+
+  UINT32 width = 0, height = 0;
+  hr = MFGetAttributeSize(pSample, MF_MT_FRAME_SIZE, &width, &height);
   if (FAILED(hr)) {
-    CoTaskMemFree(pFrameData);
+    pBuffer->Unlock();
     return hr;
   }
 
-  // Step 2: Create a new ID3D11Texture2D
+  DXGI_FORMAT format =
+      DXGI_FORMAT_B8G8R8A8_UNORM;  
+
   D3D11_TEXTURE2D_DESC textureDesc;
   ZeroMemory(&textureDesc, sizeof(textureDesc));
-  // Fill in the texture description based on the video frame data
-  // (format, width, height, etc.)
+  textureDesc.Width = width;
+  textureDesc.Height = height;
+  textureDesc.MipLevels = 1;
+  textureDesc.ArraySize = 1;
+  textureDesc.Format = format;
+  textureDesc.SampleDesc.Count = 1;
+  textureDesc.Usage = D3D11_USAGE_DEFAULT;
+  textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+  textureDesc.CPUAccessFlags = 0;
+  textureDesc.MiscFlags = 0;
 
-  ID3D11Texture2D* pVideoTexture = nullptr;
-  hr = m_device->CreateTexture2D(&textureDesc, nullptr, &pVideoTexture);
+  hr = m_device->CreateTexture2D(&textureDesc, nullptr, ppVideoTexture);
+  if (FAILED(hr)) {
+    pBuffer->Unlock();
+    return hr;
+  }
 
-  CoTaskMemFree(
-      pFrameData);  // Release the memory allocated by ConvertToContiguousBuffer
+  UINT stride = width * 4;  
 
-  if (FAILED(hr)) return hr;
+  D3D11_BOX destBox;
+  destBox.left = 0;
+  destBox.right = width;
+  destBox.top = 0;
+  destBox.bottom = height;
+  destBox.front = 0;
+  destBox.back = 1;
 
-  // Step 3: Copy the video frame data to the ID3D11Texture2D
-  m_device->GetImmediateContext(&m_deviceContext);
+  m_deviceContext->UpdateSubresource(*ppVideoTexture, 0, &destBox, pData,
+                                     stride, 0);
 
-  D3D11_BOX srcBox;
-  srcBox.left = 0;
-  srcBox.right = textureDesc.Width;
-  srcBox.top = 0;
-  srcBox.bottom = textureDesc.Height;
-  srcBox.front = 0;
-  srcBox.back = 1;
-
-  /*m_deviceContext->UpdateSubresource(
-      pVideoTexture, 0, nullptr, pFrameData,
-      textureDesc.Width * textureDesc.Format->bitsPerPixel / 8, 0);*/
-
-  //m_deviceContext->Release();
-
-  // Step 4: Store the ID3D11Texture2D in the ppVideoTexture pointer.
-  *ppVideoTexture = pVideoTexture;
-
-  return hr;
+  pBuffer->Unlock();
+  return S_OK;
 }
 
+
+
 HRESULT Renderer::RenderVideoFrameToSwapChain(ID3D11Texture2D* pVideoTexture) {
-  // Assuming you have initialized the D3D11Device, DeviceContext, and
-  // SwapChain.
-
-  // Get DXGI Surface from the ID3D11Texture2D.
-  IDXGISurface* pSurface = nullptr;
-  HRESULT hr = pVideoTexture->QueryInterface(IID_PPV_ARGS(&pSurface));
-  if (FAILED(hr)) {
-    // Handle the error.
-    return hr;
-  }
-
-  // Create a Direct2D bitmap from the DXGI surface.
-  ID2D1Bitmap* pBitmap = nullptr;
-  D2D1_BITMAP_PROPERTIES bitmapProperties = D2D1::BitmapProperties();
-  hr = pD2D1DeviceContext->CreateBitmapFromDxgiSurface(
-      pSurface, &bitmapProperties, &pBitmap);
-  pSurface->Release();  // Release the DXGI surface.
-  if (FAILED(hr)) {
-    // Handle the error.
-    return hr;
-  }
-
-  // Clear the render target view and render the Direct2D bitmap to the swap
-  // chain.
-  pD3D11DeviceContext->ClearRenderTargetView(pRenderTargetView, ClearColor);
-  pD2D1DeviceContext->BeginDraw();
-  pD2D1DeviceContext->DrawBitmap(pBitmap);
-  hr = pD2D1DeviceContext->EndDraw();
-  pD3D11SwapChain->Present(0, 0);
-
-  // Release the Direct2D bitmap.
-  if (pBitmap) {
-    pBitmap->Release();
-    pBitmap = nullptr;
-  }
-
-  return hr;
+  return E_NOTIMPL;
 }
 
 
