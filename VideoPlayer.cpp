@@ -109,34 +109,53 @@ HRESULT VideoPlayer::CreateInstance(HWND hVideo, VideoPlayer **ppPlayer) {
   return S_OK;
 }
 
+
 HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
   if (!sURL) return E_INVALIDARG;
 
   CloseSession();
 
-  // Create the source reader
   ComPtr<IMFAttributes> pAttributes;
   HRESULT hr = MFCreateAttributes(pAttributes.GetAddressOf(), 1);
+  if (FAILED(hr)) return hr;
 
+  // Enable hardware transforms and video processing
   hr = pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
+  if (FAILED(hr)) return hr;
 
   hr = pAttributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
+  if (FAILED(hr)) return hr;
 
-  if (SUCCEEDED(hr)) {
-    hr = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
-                                 static_cast<IMFSourceReaderCallback *>(this));
-    if (SUCCEEDED(hr)) {
-      hr = MFCreateSourceReaderFromURL(sURL, pAttributes.Get(),
-                                       m_reader.GetAddressOf());
-      if (SUCCEEDED(hr)) {
-        hr = m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0,
-                                  nullptr, nullptr, nullptr, nullptr);
-        return hr;
-      }
-    }
-  }
+  // Set the output media type to RGB32 format
+  ComPtr<IMFMediaType> pMediaTypeOut;
+  hr = MFCreateMediaType(pMediaTypeOut.GetAddressOf());
+  if (FAILED(hr)) return hr;
+
+  hr = pMediaTypeOut->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+  if (FAILED(hr)) return hr;
+
+  hr = pMediaTypeOut->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
+  if (FAILED(hr)) return hr;
+
+  // Set the asynchronous callback for the source reader
+  hr = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
+                               static_cast<IMFSourceReaderCallback *>(this));
+  if (FAILED(hr)) return hr;
+
+  hr = MFCreateSourceReaderFromURL(sURL, pAttributes.Get(),
+                                   m_reader.GetAddressOf());
+  if (FAILED(hr)) return hr;
+
+  // Set the output media type for the video stream
+  hr = m_reader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+                                     nullptr, pMediaTypeOut.Get());
+  if (FAILED(hr)) return hr;
+
+  hr = m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr,
+                            nullptr, nullptr, nullptr);
   return hr;
 }
+
 
 //-----------------------------------------------------------------------------
 // Playback Methods
@@ -204,19 +223,17 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
   if (pSample) {
     ID3D11Texture2D *pVideoTexture = nullptr;
     HRESULT hr = m_renderer->ExtractVideoFrame(pSample, &pVideoTexture);
-    if (FAILED(hr)) {
+    if (SUCCEEDED(hr)) {
+      hr = m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
+      if (FAILED(hr)) {
+        return hr;
+      }
+    } else {
       DebugPrint("OnReadSample():ERROR\n");
       return hr;
     }
 
-
-    //hr = m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
-    /*if (FAILED(hr)) {
-      return hr;
-    }*/
-
-    
-    //TODO: add delay
+    // TODO: add delay
 
     hrStatus = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
     if (FAILED(hrStatus)) {

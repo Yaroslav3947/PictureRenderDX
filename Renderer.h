@@ -19,9 +19,8 @@ class Renderer {
   public:
   HRESULT ExtractVideoFrame(IMFSample *pSample,
                              ID3D11Texture2D **ppVideoTexture);
-   HRESULT RenderVideoFrameToSwapChain(ID3D11Texture2D *pVideoTexture);
-  HRESULT
-  RenderTextureToWindow(ComPtr<ID3D11Texture2D> pTexture);
+   HRESULT CreateBitmapFromTexture(ID3D11Texture2D *pTexture,
+                                   ID2D1Bitmap **ppBitmap);
 
  private:
   void createDevice(HWND &hwnd);
@@ -34,5 +33,6 @@ class Renderer {
 
   // Render target
   ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+
   D3D11_TEXTURE2D_DESC m_backBufferDesc;
 };
