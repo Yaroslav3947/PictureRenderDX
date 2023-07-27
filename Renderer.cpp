@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
 Renderer::Renderer(HWND &hwnd) {
-  createDevice(hwnd);
-  createRenderTarget();
+  CreateDevices(hwnd);
+  CreateRenderTarget();
 }
 
-void Renderer::beginFrame() {
+void Renderer::BeginFrame() {
   // Bind render target
   m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(),
                                       nullptr);
@@ -19,7 +19,7 @@ void Renderer::beginFrame() {
   m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
 }
 
-void Renderer::endFrame() {
+void Renderer::EndFrame() {
   // Swap the buffer!
   m_swapChain->Present(1, 0);
 }
@@ -42,9 +42,11 @@ HRESULT Renderer::ExtractVideoFrame(IMFSample* pSample,
   }
 
   D3D11_TEXTURE2D_DESC desc = {};
+
+  /// TODO: make swapChain resizible and use settings of pSample
   desc.Width = 800;
   desc.Height = 600;
-  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // Change this format if needed
+  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   desc.Usage = D3D11_USAGE_DEFAULT;
   desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
   desc.CPUAccessFlags = 0;
@@ -67,14 +69,27 @@ HRESULT Renderer::ExtractVideoFrame(IMFSample* pSample,
   return hr;
 }
 
-HRESULT Renderer::CreateBitmapFromTexture(ID3D11Texture2D* pTexture,
-                                          ID2D1Bitmap** ppBitmap) {
-  return E_NOTIMPL;
+HRESULT Renderer::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
+                                          ComPtr<ID2D1Bitmap1> pBitmap) {
+
+  ComPtr<IDXGISurface> dxgiSurface;
+  HRESULT hr = pBitmap->GetSurface(dxgiSurface.GetAddressOf());
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  ComPtr<ID3D11Resource> pResource;
+  hr = dxgiSurface.As(&pResource);
+  if (FAILED(hr)) {
+    return hr;
+  }
+
+  m_deviceContext->CopyResource(pResource.Get(), pTexture.Get());
+
+  return S_OK;
 }
 
-
-
-void Renderer::createDevice(HWND &hwnd) {
+void Renderer::CreateDevices(HWND &hwnd) {
   // Define our swap chain
   DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
   swapChainDesc.BufferCount = 1;
@@ -85,19 +100,34 @@ void Renderer::createDevice(HWND &hwnd) {
   swapChainDesc.Windowed = true;
 
   // Create the swap chain, device and device context
-  auto result = D3D11CreateDeviceAndSwapChain(
+  HRESULT hr = D3D11CreateDeviceAndSwapChain(
       nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
       D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, nullptr,
       &m_deviceContext);
 
-  // Check for error
-  if (result != S_OK) {
-    MessageBox(nullptr, "Error creating DX11", "Error", MB_OK);
-    exit(0);
+  D2D1_FACTORY_OPTIONS options = {};
+  hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
+                                 __uuidof(ID2D1Factory1), &m_factory);
+
+  ComPtr<IDXGIDevice> dxgiDevice;
+  hr = m_device.As(&dxgiDevice);
+  if (FAILED(hr)) {
+    return;
+  }
+
+  hr = m_factory->CreateDevice(dxgiDevice.Get(), &m_D2DDevice);
+  if (FAILED(hr)) {
+    return;
+  }
+
+  hr = m_D2DDevice->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+                                        m_D2DDeviceContext.GetAddressOf());
+  if (FAILED(hr)) {
+    return;
   }
 }
 
-void Renderer::createRenderTarget() {
+void Renderer::CreateRenderTarget() {
   ComPtr<ID3D11Texture2D> backBuffer;
   m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
                          (void **)backBuffer.GetAddressOf());

@@ -1,6 +1,5 @@
 #include "Window.h"
-#include "App.h"
-//#include "VideoPlayer.h"
+
 
 
 
@@ -11,11 +10,6 @@ void OpenFile(HWND hwnd);
 
 Window::Window() {
   this->CreateWnd();
-
-
-  /*if (FAILED(hr)) {
-    return;
-  }*/
 }
 
 void Window::CreateWnd() {

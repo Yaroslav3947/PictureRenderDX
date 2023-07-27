@@ -30,7 +30,7 @@
     <ClCompile Include="WICTextureLoader11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="App.cpp">
+    <ClCompile Include="VideoPlayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,7 +50,7 @@
     <ClInclude Include="WICTextureLoader11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="App.h">
+    <ClInclude Include="VideoPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -60,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Picture.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Image.jpg">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

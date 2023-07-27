@@ -47,7 +47,8 @@ HRESULT VideoPlayer::Initialize() {
   if (FAILED(hr)) {
     return hr;
   }
-  /// TODO: init or cmp with idea hw to make it all work
+
+
   m_renderer = std::make_unique<Renderer>(m_hwnd);
   if (m_renderer == nullptr) {
     return E_FAIL;
@@ -207,11 +208,11 @@ HRESULT VideoPlayer::Shutdown() {
   return hr;
 }
 
-HRESULT VideoPlayer::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
+HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
                                   DWORD dwStreamFlags, LONGLONG llTimestamp,
                                   IMFSample *pSample) {
-  if (FAILED(hrStatus)) {
-    return hrStatus;
+  if (FAILED(hr)) {
+    return hr;
   }
 
   if (dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) {
@@ -221,23 +222,43 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
   DebugPrint("OnReadSample()\n");
 
   if (pSample) {
-    ID3D11Texture2D *pVideoTexture = nullptr;
-    HRESULT hr = m_renderer->ExtractVideoFrame(pSample, &pVideoTexture);
-    if (SUCCEEDED(hr)) {
-      hr = m_renderer->RenderVideoFrameToSwapChain(pVideoTexture);
-      if (FAILED(hr)) {
-        return hr;
-      }
-    } else {
-      DebugPrint("OnReadSample():ERROR\n");
+    ComPtr<ID3D11Texture2D> pVideoTexture;
+    hr = m_renderer->ExtractVideoFrame(pSample, pVideoTexture.GetAddressOf());
+    if (FAILED(hr)) {
+      return hr;
+    }
+
+    ComPtr<IDXGISurface> dxgiSurface;
+    hr = pVideoTexture->QueryInterface(dxgiSurface.GetAddressOf());                       
+    if (FAILED(hr)) {
+      return hr;
+    }
+   
+    D2D1_BITMAP_PROPERTIES1 bitmapProperties;
+    bitmapProperties.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
+    bitmapProperties.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+    bitmapProperties.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
+    bitmapProperties.colorContext = nullptr;
+
+
+    ComPtr<ID2D1Bitmap1> pBitmap;
+    hr = m_renderer->GetD2DDeviceContext()->CreateBitmapFromDxgiSurface(
+        dxgiSurface.Get(), &bitmapProperties, pBitmap.GetAddressOf());
+    if (FAILED(hr)) {
+      return hr;
+    }
+
+    hr =
+        m_renderer->CreateBitmapFromTexture(pVideoTexture.Get(), pBitmap.Get());
+    if (FAILED(hr)) {
       return hr;
     }
 
     // TODO: add delay
 
-    hrStatus = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
-    if (FAILED(hrStatus)) {
-      return hrStatus;
+    hr = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
+    if (FAILED(hr)) {
+      return hr;
     }
   }
 

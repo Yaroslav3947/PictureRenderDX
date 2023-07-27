@@ -31,7 +31,7 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   }
 
   // IMFSourceReaderCallback methods
-  HRESULT OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex,
+  HRESULT OnReadSample(HRESULT hr, DWORD dwStreamIndex,
                        DWORD dwStreamFlags, LONGLONG llTimestamp,
                        IMFSample *pSample) override;
 

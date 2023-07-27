@@ -32,4 +32,5 @@ class Picture {
   ComPtr<ID3D11DepthStencilState> m_depthState;
   ComPtr<ID3D11BlendState> m_blendState;
   ComPtr<ID3D11ShaderResourceView> m_texture;
+
 };

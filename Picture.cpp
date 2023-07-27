@@ -25,7 +25,7 @@ Picture::Picture(Renderer& renderer) {
 Picture::~Picture() {}
 
 void Picture::draw(Renderer& renderer) {
-  auto deviceContext = renderer.getDeviceContext();
+  auto deviceContext = renderer.GetD3DDeviceContext();
 
   deviceContext->PSSetShaderResources(0, 1, m_texture.GetAddressOf());
 
@@ -46,7 +46,7 @@ void Picture::createMesh(Renderer& renderer) {
   D3D11_SUBRESOURCE_DATA vertexData = {0};
   vertexData.pSysMem = vertices;
 
-  renderer.getDevice()->CreateBuffer(&vertexBufferDesc, &vertexData,
+  renderer.GetDevice()->CreateBuffer(&vertexBufferDesc, &vertexData,
                                      m_vertexBuffer.GetAddressOf());
 }
 
@@ -60,9 +60,9 @@ void Picture::createShaders(Renderer& renderer) {
   std::vector<char> psData = {std::istreambuf_iterator<char>(psFile),
                               std::istreambuf_iterator<char>()};
 
-  renderer.getDevice()->CreateVertexShader(
+  renderer.GetDevice()->CreateVertexShader(
       vsData.data(), vsData.size(), nullptr, m_vertexShader.GetAddressOf());
-  renderer.getDevice()->CreatePixelShader(psData.data(), psData.size(), nullptr,
+  renderer.GetDevice()->CreatePixelShader(psData.data(), psData.size(), nullptr,
                                           m_pixelShader.GetAddressOf());
 
   // Create input layout
@@ -75,7 +75,7 @@ void Picture::createShaders(Renderer& renderer) {
        D3D11_INPUT_PER_VERTEX_DATA, 0},
   };
 
-  renderer.getDevice()->CreateInputLayout(
+  renderer.GetDevice()->CreateInputLayout(
       layout, 3, vsData.data(), vsData.size(), m_inputLayout.GetAddressOf());
 }
 
@@ -84,12 +84,12 @@ void Picture::createRenderStates(Renderer& renderer) {
   auto rasterizerDesc =
       CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0, 0,
                              0, false, false, false);
-  renderer.getDevice()->CreateRasterizerState(&rasterizerDesc,
+  renderer.GetDevice()->CreateRasterizerState(&rasterizerDesc,
                                               m_rasterizerState.GetAddressOf());
 
   // Blend state
   auto blendDesc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
-  renderer.getDevice()->CreateBlendState(&blendDesc,
+  renderer.GetDevice()->CreateBlendState(&blendDesc,
                                          m_blendState.GetAddressOf());
 
   // Depth state
@@ -99,12 +99,12 @@ void Picture::createRenderStates(Renderer& renderer) {
       D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP,
       D3D11_COMPARISON_ALWAYS, D3D11_STENCIL_OP_KEEP, D3D11_STENCIL_OP_KEEP,
       D3D11_STENCIL_OP_KEEP, D3D11_COMPARISON_ALWAYS);
-  renderer.getDevice()->CreateDepthStencilState(&depthDesc,
+  renderer.GetDevice()->CreateDepthStencilState(&depthDesc,
                                                 m_depthState.GetAddressOf());
 }
 
 void Picture::loadTexture(Renderer& renderer) {
-  HRESULT hr = DirectX::CreateWICTextureFromFile(renderer.getDevice().Get(),
+  HRESULT hr = DirectX::CreateWICTextureFromFile(renderer.GetDevice().Get(),
                                                  L"Image.jpg", nullptr,
                                                  m_texture.GetAddressOf());
 
