@@ -90,20 +90,42 @@ HRESULT Renderer::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
 }
 
 void Renderer::CreateDevices(HWND &hwnd) {
-  // Define our swap chain
-  DXGI_SWAP_CHAIN_DESC swapChainDesc = {0};
-  swapChainDesc.BufferCount = 1;
-  swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  swapChainDesc.OutputWindow = hwnd;
-  swapChainDesc.SampleDesc.Count = 1;
-  swapChainDesc.Windowed = true;
 
-  // Create the swap chain, device and device context
+  DXGI_SWAP_CHAIN_DESC desc;
+  ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
+  desc.Windowed = true;
+  desc.BufferCount = 2;
+  desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+  desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  desc.SampleDesc.Count = 1;    
+  desc.SampleDesc.Quality = 0;  
+  desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+  desc.OutputWindow = hwnd;
+
+
+  D3D_FEATURE_LEVEL levels[] = {D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
+                                D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
+                                D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
+                                D3D_FEATURE_LEVEL_11_1};
+
+  UINT deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+  D3D_FEATURE_LEVEL m_featureLevel;
+
   HRESULT hr = D3D11CreateDeviceAndSwapChain(
-      nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
-      D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, nullptr,
-      &m_deviceContext);
+      nullptr, 
+      D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, 
+      nullptr, 
+      deviceFlags,
+      levels, 
+      ARRAYSIZE(levels), 
+      D3D11_SDK_VERSION, 
+      &desc,
+      m_swapChain.GetAddressOf(), 
+      m_device.GetAddressOf(), 
+      &m_featureLevel,
+      m_deviceContext.GetAddressOf()
+  );
 
   D2D1_FACTORY_OPTIONS options = {};
   hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
