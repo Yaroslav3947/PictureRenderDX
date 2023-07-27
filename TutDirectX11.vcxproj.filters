@@ -55,8 +55,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TriangleVertexShader.hlsl" />
-    <FxCompile Include="TrianglePixelShader.hlsl" />
+    <FxCompile Include="Shaders\TriangleVertexShader.hlsl" />
+    <FxCompile Include="Shaders\TrianglePixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Picture.png">

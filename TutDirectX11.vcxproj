@@ -150,11 +150,11 @@
     <ClInclude Include="Support\WinInclude.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TrianglePixelShader.hlsl">
+    <FxCompile Include="Shaders\TrianglePixelShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="TriangleVertexShader.hlsl">
+    <FxCompile Include="Shaders\TriangleVertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
