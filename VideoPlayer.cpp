@@ -220,6 +220,7 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
   }
 
   DebugPrint("OnReadSample()\n");
+  m_renderer->BeginFrame();
 
   if (pSample) {
     ComPtr<ID3D11Texture2D> pVideoTexture;
@@ -253,6 +254,8 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
     if (FAILED(hr)) {
       return hr;
     }
+
+    m_renderer->EndFrame();
 
     // TODO: add delay
 

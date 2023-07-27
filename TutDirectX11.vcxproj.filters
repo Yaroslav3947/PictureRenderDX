@@ -27,7 +27,7 @@
     <ClCompile Include="Picture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WICTextureLoader11.cpp">
+    <ClCompile Include="Support\WICTextureLoader11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VideoPlayer.cpp">
@@ -44,10 +44,10 @@
     <ClInclude Include="Picture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinInclude.h">
+    <ClInclude Include="Support\WinInclude.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WICTextureLoader11.h">
+    <ClInclude Include="Support\WICTextureLoader11.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VideoPlayer.h">
