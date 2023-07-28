@@ -7,30 +7,21 @@
 int CALLBACK WinMain(HINSTANCE appInstance, HINSTANCE prevInstance,
                      LPSTR cmdLine, int cmdCount) {
 
-  VideoPlayer *pVideoPlayer = nullptr;
+  if (Window::Get().Init()) {
+    while (!Window::Get().ShouldClose()) {
+      Window::Get().Update();
 
-  Window window;
-  
-  HWND hwnd = window.getHandle();
-
-  HRESULT hr = VideoPlayer::CreateInstance(hwnd, &pVideoPlayer);
-  const WCHAR* filePath = L"C:/Users/Yaroslav/Desktop/video.mp4";
-
-  pVideoPlayer->OpenURL(filePath);
-  
-  MSG msg = {0};
-  while (true) {
-    if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
-      TranslateMessage(&msg);
-      DispatchMessage(&msg);
-
-      if (msg.message == WM_QUIT) {
-        break;
+      // Handle resizing
+      if (Window::Get().ShouldResize()) {
+        Window::Get().Resize();
       }
-    }
-  }
 
-  delete pVideoPlayer;
+      Window::Get().BeginFrame();
+
+      Window::Get().EndFrame();
+    }
+    Window::Get().Shutdown();
+  }
 
   return 0;
 }
