@@ -4,12 +4,15 @@
 
 class Window {
  public:
-  HWND GetWindow() { return m_hwnd; }
 
   bool Init();
   void Update();
   void Shutdown();
   void Resize();
+  void SetFullscreen(bool enabled);
+
+  void InitMenu();
+
   void CreateDevices();
   void CreateRenderTarget();
 
@@ -22,7 +25,12 @@ class Window {
 
   inline bool IsFullscreen() const { return m_isFullscreen; }
 
+  inline HWND GetWindow() { return m_hwnd; }
+  inline ComPtr<ID3D11Device> GetDevice() { return m_device; }
+
  private:
+  bool GetBuffers();
+  void ReleaseBuffers();
   static LRESULT CALLBACK WinProc(HWND wnd, UINT msg, WPARAM wParam,
                                   LPARAM lParam);
  private:
