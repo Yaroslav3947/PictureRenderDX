@@ -21,7 +21,7 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
+    <ClCompile Include="D2D\DXHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Picture.cpp">
@@ -38,7 +38,7 @@
     <ClInclude Include="Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer.h">
+    <ClInclude Include="D2D\DXHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Picture.h">

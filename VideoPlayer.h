@@ -1,7 +1,7 @@
 #pragma once 
 
 #include "Support/WinInclude.h"
-#include "Renderer.h"
+#include "DXHelper.h"
 
 class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
  public:
@@ -47,7 +47,7 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
 
  protected:
   ComPtr<IMFSourceReader> m_reader;
-  std::unique_ptr<Renderer> m_renderer;
+  std::unique_ptr<DXHelper> m_dxhelper;
 
   long m_nRefCount;
   HWND m_hwnd;  // Video window.

@@ -1,15 +1,13 @@
 #include "Window.h"
-#include "Renderer.h"
+#include "DXHelper.h"
 #include "Picture.h"
 #include "VideoPlayer.h"
 
 
 int CALLBACK WinMain(HINSTANCE appInstance, HINSTANCE prevInstance,
                      LPSTR cmdLine, int cmdCount) {
-
   if (Window::Get().Init()) {
-
-      Window::Get().SetFullscreen(true);
+    Window::Get().SetFullscreen(true);
     while (!Window::Get().ShouldClose()) {
       Window::Get().Update();
 

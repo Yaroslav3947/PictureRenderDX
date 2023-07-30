@@ -4,7 +4,7 @@ void DebugPrint(const char *message) { OutputDebugStringA(message); }
 
 VideoPlayer::VideoPlayer(HWND hwmd)
     : m_reader(nullptr),
-      m_renderer(nullptr),
+      m_dxhelper(nullptr),
       m_hwnd(hwmd),
       m_pSession(nullptr) {
 }
@@ -49,8 +49,8 @@ HRESULT VideoPlayer::Initialize() {
   }
 
 
-  m_renderer = std::make_unique<Renderer>(m_hwnd);
-  if (m_renderer == nullptr) {
+  m_dxhelper = std::make_unique<DXHelper>();
+  if (m_dxhelper == nullptr) {
     return E_FAIL;
   }
 
@@ -220,11 +220,10 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
   }
 
   DebugPrint("OnReadSample()\n");
-  m_renderer->BeginFrame();
 
   if (pSample) {
     ComPtr<ID3D11Texture2D> pVideoTexture;
-    hr = m_renderer->ExtractVideoFrame(pSample, pVideoTexture.GetAddressOf());
+    hr = m_dxhelper->ExtractVideoFrame(pSample, pVideoTexture.GetAddressOf());
     if (FAILED(hr)) {
       return hr;
     }
@@ -243,19 +242,18 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
 
 
     ComPtr<ID2D1Bitmap1> pBitmap;
-    hr = m_renderer->GetD2DDeviceContext()->CreateBitmapFromDxgiSurface(
+    hr = m_dxhelper->GetD2DDeviceContext()->CreateBitmapFromDxgiSurface(
         dxgiSurface.Get(), &bitmapProperties, pBitmap.GetAddressOf());
     if (FAILED(hr)) {
       return hr;
     }
 
     hr =
-        m_renderer->CreateBitmapFromTexture(pVideoTexture.Get(), pBitmap.Get());
+        m_dxhelper->CreateBitmapFromTexture(pVideoTexture.Get(), pBitmap.Get());
     if (FAILED(hr)) {
       return hr;
     }
 
-    m_renderer->EndFrame();
 
     // TODO: add delay
 

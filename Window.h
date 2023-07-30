@@ -10,7 +10,7 @@ class Window {
   void Shutdown();
   void Resize();
   void SetFullscreen(bool enabled);
-
+    
   void InitMenu();
 
   void CreateDevices();

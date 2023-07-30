@@ -135,14 +135,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="D2D\DXHelper.cpp" />
     <ClCompile Include="Picture.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Support\WICTextureLoader11.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="D2D\DXHelper.h" />
     <ClInclude Include="Picture.h" />
     <ClInclude Include="VideoPlayer.h" />
     <ClInclude Include="Support\WICTextureLoader11.h" />
