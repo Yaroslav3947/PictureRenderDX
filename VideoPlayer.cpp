@@ -256,6 +256,9 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
       return hr;
     }
   }
+
+  //// TODO: add delay
+
   hr = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
   if (FAILED(hr)) {
     return hr;
