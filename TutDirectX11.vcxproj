@@ -163,6 +163,7 @@
     <Image Include="Resources\Images\Image.jpg" />
     <Image Include="Resources\Images\Picture.png" />
     <Image Include="Resources\Images\SampleBMP.bmp" />
+    <Image Include="Resources\Images\SampleBMP2.bmp" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="Resources\Videos\video.mp4" />

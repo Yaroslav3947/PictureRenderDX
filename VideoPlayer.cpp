@@ -248,7 +248,7 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
       return hr;
     }
 
-    hr = m_dxhelper->RenderBitmapOnWindow(pBitmap.Get());
+    hr = m_dxhelper->RenderBitmapOnWindow(/*pBitmap.Get()*/);
     if (FAILED(hr)) {
       return hr;
     }

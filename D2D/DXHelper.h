@@ -21,7 +21,7 @@ class DXHelper {
   HRESULT CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
                                   ComPtr<ID2D1Bitmap1> pBitmap);
 
-  HRESULT RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1>);
+  HRESULT RenderBitmapOnWindow(/*ComPtr<ID2D1Bitmap1> pBitmap*/);
 
  private:
   void Init();

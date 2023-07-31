@@ -68,6 +68,9 @@
     <Image Include="Resources\Images\SampleBMP.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Resources\Images\SampleBMP2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Media Include="Resources\Videos\video.mp4">

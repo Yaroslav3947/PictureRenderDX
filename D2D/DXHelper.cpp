@@ -1,51 +1,11 @@
 #include "DXHelper.h"
 
-DXHelper::DXHelper() { Init(); }
+#include <wincodec.h>
 
-//HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
-//                                    ID3D11Texture2D** ppVideoTexture) {
-//  HRESULT hr = S_OK;
-//  ComPtr<IMFMediaBuffer> pBuffer;
-//  BYTE* pData = nullptr;
-//  DWORD cbData = 0;
-//
-//  hr = pSample->ConvertToContiguousBuffer(pBuffer.GetAddressOf());
-//  if (FAILED(hr)) {
-//    return hr;
-//  }
-//
-//  hr = pBuffer->Lock(&pData, nullptr, &cbData);
-//  if (FAILED(hr)) {
-//    return hr;
-//  }
-//
-//  D3D11_TEXTURE2D_DESC desc = {};
-//
-//  /// TODO: use settings of pSample for width and height
-//  desc.Width = 1920;
-//  desc.Height = 1080;
-//  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-//  desc.Usage = D3D11_USAGE_DEFAULT;
-//  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-//  desc.CPUAccessFlags = 0;
-//  desc.MiscFlags = 0;
-//  desc.ArraySize = 1;
-//  desc.MipLevels = 1;
-//  desc.SampleDesc.Count = 1;
-//
-//  hr = m_device->CreateTexture2D(&desc, nullptr, ppVideoTexture);
-//  if (FAILED(hr)) {
-//    pBuffer->Unlock();
-//    return hr;
-//  }
-//
-//  m_deviceContext->UpdateSubresource(*ppVideoTexture, 0, nullptr, pData,
-//                                     desc.Width * 4, 0);
-//
-//  pBuffer->Unlock();
-//
-//  return hr;
-//}
+#include <random>
+#include <vector>
+
+DXHelper::DXHelper() { Init(); }
 
 HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
                                     ID3D11Texture2D** ppVideoTexture) {
@@ -94,7 +54,6 @@ HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
   return hr;
 }
 
-
 HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
                                           ComPtr<ID2D1Bitmap1> pBitmap) {
   ComPtr<IDXGISurface> dxgiSurface;
@@ -114,16 +73,64 @@ HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
   return S_OK;
 }
 
-HRESULT DXHelper::RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1> pBitmap) {
+HRESULT DXHelper::RenderBitmapOnWindow(/*ComPtr<ID2D1Bitmap1> pBitmap*/) {
   m_renderTarget->BeginDraw();
   m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
   m_renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::MediumPurple));
 
+  const std::vector<const WCHAR*>& filePaths = {
+      L"Resources/Images/SampleBMP.bmp", 
+      L"Resources/Images/SampleBMP2.bmp"
+  };
+
+  ComPtr<IWICImagingFactory> pWICFactory;
+  HRESULT hr =
+      CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER,
+                       IID_PPV_ARGS(&pWICFactory));
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+  ComPtr<IWICBitmapDecoder> pDecoder;
+  hr = pWICFactory->CreateDecoderFromFilename(filePaths[0], nullptr, GENERIC_READ,
+                                              WICDecodeMetadataCacheOnLoad,
+                                              &pDecoder);
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+  ComPtr<IWICBitmapFrameDecode> pFrame;
+  hr = pDecoder->GetFrame(0, &pFrame);
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+  ComPtr<IWICFormatConverter> pConverter;
+  hr = pWICFactory->CreateFormatConverter(&pConverter);
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+  hr = pConverter->Initialize(pFrame.Get(), GUID_WICPixelFormat32bppPBGRA,
+                              WICBitmapDitherTypeNone, nullptr, 0.f,
+                              WICBitmapPaletteTypeCustom);
+
+  if (FAILED(hr)) {
+    return hr;
+  }
+  // Create a D2D1Bitmap from the WIC format converter.
+  ComPtr<ID2D1Bitmap> pBitmap;
+  hr = m_renderTarget->CreateBitmapFromWicBitmap(pConverter.Get(), nullptr,
+                                                 &pBitmap);
+
+  if (FAILED(hr)) {
+    return hr;
+  }
   D2D1_SIZE_F renderTargetSize = m_renderTarget->GetSize();
   D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
 
-  // Calculate the position to draw the bitmap at the center of the render
-  // target.
+  // Calculate the position to draw the bitmap at the center of the
+  // render target.
   D2D1_POINT_2F upperLeftCorner =
       D2D1::Point2F((renderTargetSize.width - bitmapSize.width) / 2.f,
                     (renderTargetSize.height - bitmapSize.height) / 2.f);
@@ -133,7 +140,10 @@ HRESULT DXHelper::RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1> pBitmap) {
                                  upperLeftCorner.x + bitmapSize.width,
                                  upperLeftCorner.y + bitmapSize.height));
 
-  m_renderTarget->EndDraw();
+  hr = m_renderTarget->EndDraw();
+  if (FAILED(hr)) {
+    return hr;
+  }
 
   Window::Get().Preset();
 
