@@ -44,7 +44,6 @@ bool Window::Init() {
   InitMenu();
 
   CreateDevices();
-  CreateRenderTarget();
 
   return true;
 }
@@ -147,46 +146,8 @@ void Window::SetFullscreen(bool enabled) {
   m_isFullscreen = enabled;
 }
 
-
-void Window::CreateRenderTarget() {
-  m_renderTargetView.Reset();
-
-  ComPtr<ID3D11Texture2D> backBuffer;
-  HRESULT hr = m_swapChain->GetBuffer(
-      0, __uuidof(ID3D11Texture2D),
-      reinterpret_cast<void**>(backBuffer.GetAddressOf()));
-  if (FAILED(hr)) {
-    return;
-  }
-
-  hr = m_device->CreateRenderTargetView(backBuffer.Get(), nullptr,
-                                        m_renderTargetView.GetAddressOf());
-  if (FAILED(hr)) {
-    return;
-  }
-
-  backBuffer->GetDesc(&m_backBufferDesc);
-}
-
-void Window::BeginFrame() {
-  // Bind render target
-  m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(),
-                                      nullptr);
-
-  // Set viewport
-  auto viewport =
-      CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(m_backBufferDesc.Width),
-                      static_cast<float>(m_backBufferDesc.Height));
-  m_deviceContext->RSSetViewports(1, &viewport);
-
-  // Set the background color
-  float clearColor[] = {0.25f, 0.5f, 1.0f, 1.0f};
-  m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), clearColor);
-}
-
-void Window::EndFrame() {
-  // Swap the buffer!
-  m_swapChain->Present(1, 0);
+void Window::Preset() {
+  m_swapChain->Present(1, 0);  // 1 - VSync
 }
 
 void Window::InitMenu() {

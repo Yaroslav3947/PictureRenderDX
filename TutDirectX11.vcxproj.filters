@@ -70,6 +70,8 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="Resources\Videos\video.mp4" />
+    <Media Include="Resources\Videos\video.mp4">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>

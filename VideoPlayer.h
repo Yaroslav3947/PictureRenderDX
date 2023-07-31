@@ -5,8 +5,6 @@
 #include "D2D/DXHelper.h"
 #include "Support/WinInclude.h"
 
-
-
 class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
  public:
   static HRESULT CreateInstance(HWND hwnd, VideoPlayer **ppPlayer);
@@ -35,9 +33,8 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   }
 
   // IMFSourceReaderCallback methods
-  HRESULT OnReadSample(HRESULT hr, DWORD dwStreamIndex,
-                       DWORD dwStreamFlags, LONGLONG llTimestamp,
-                       IMFSample *pSample) override;
+  HRESULT OnReadSample(HRESULT hr, DWORD dwStreamIndex, DWORD dwStreamFlags,
+                       LONGLONG llTimestamp, IMFSample *pSample) override;
 
   virtual ~VideoPlayer();
 

@@ -1,9 +1,5 @@
 #include "DXHelper.h"
 
-#include <wincodec.h>
-
-#include "../Window.h"
-
 DXHelper::DXHelper() { Init(); }
 
 HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
@@ -53,7 +49,6 @@ HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
 
 HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
                                           ComPtr<ID2D1Bitmap1> pBitmap) {
-
   ComPtr<IDXGISurface> dxgiSurface;
   HRESULT hr = pBitmap->GetSurface(dxgiSurface.GetAddressOf());
   if (FAILED(hr)) {
@@ -72,28 +67,40 @@ HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
 }
 
 HRESULT DXHelper::RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1> pBitmap) {
-
   m_renderTarget->BeginDraw();
   m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-   m_renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::Red));
 
-  //D2D1_SIZE_F renderTargetSize = m_renderTarget->GetSize();
-  //D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
+  // Generate three random colors
+  D2D1::ColorF colors[3] = {
+      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX),
+      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX),
+      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX,
+                   static_cast<float>(rand()) / RAND_MAX)};
 
-  //// Calculate the position to draw the bitmap at the center of the
-  //// render target.
-  //D2D1_POINT_2F upperLeftCorner =
-  //    D2D1::Point2F((renderTargetSize.width - bitmapSize.width) / 2.f,
-  //                  (renderTargetSize.height - bitmapSize.height) / 2.f);
+  m_renderTarget->Clear(colors[0]);
 
-  //m_renderTarget->DrawBitmap(
-  //    pBitmap.Get(), D2D1::RectF(upperLeftCorner.x, upperLeftCorner.y,
-  //                               upperLeftCorner.x + bitmapSize.width,
-  //                               upperLeftCorner.y + bitmapSize.height));
+  D2D1_SIZE_F renderTargetSize = m_renderTarget->GetSize();
+  D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
+
+  // Calculate the position to draw the bitmap at the center of the render
+  // target.
+  /*D2D1_POINT_2F upperLeftCorner =
+      D2D1::Point2F((renderTargetSize.width - bitmapSize.width) / 2.f,
+                    (renderTargetSize.height - bitmapSize.height) / 2.f);
+
+  m_renderTarget->DrawBitmap(
+      pBitmap.Get(), D2D1::RectF(upperLeftCorner.x, upperLeftCorner.y,
+                                 upperLeftCorner.x + bitmapSize.width,
+                                 upperLeftCorner.y + bitmapSize.height));*/
 
   m_renderTarget->EndDraw();
 
-  Window::Get().EndFrame();
+  Window::Get().Preset();
 
   return S_OK;
 }
@@ -108,21 +115,13 @@ void DXHelper::Init() {
 
   D3D_FEATURE_LEVEL featureLevel;
 
-  HRESULT hr = D3D11CreateDevice(
-      nullptr,
-      D3D_DRIVER_TYPE_HARDWARE,
-      0,
-      deviceFlags,
-      levels,
-      ARRAYSIZE(levels),
-      D3D11_SDK_VERSION,
-      m_device.GetAddressOf(),
-      &featureLevel, 
-      m_deviceContext.GetAddressOf()             
-  );
+  HRESULT hr = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0,
+                                 deviceFlags, levels, ARRAYSIZE(levels),
+                                 D3D11_SDK_VERSION, m_device.GetAddressOf(),
+                                 &featureLevel, m_deviceContext.GetAddressOf());
   D2D1_FACTORY_OPTIONS options = {};
   hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
-                                 __uuidof(ID2D1Factory1), &m_factory);
+                         __uuidof(ID2D1Factory1), &m_factory);
 
   ComPtr<IDXGIDevice> dxgiDevice;
   hr = m_device.As(&dxgiDevice);
@@ -152,12 +151,8 @@ void DXHelper::Init() {
   hr = swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackbuffer));
 
   hr = m_factory->CreateDxgiSurfaceRenderTarget(
-      dxgiBackbuffer, 
-      &renderTargetProps,
-      m_renderTarget.GetAddressOf()
-  );
+      dxgiBackbuffer, &renderTargetProps, m_renderTarget.GetAddressOf());
   if (FAILED(hr)) {
     return;
   }
 }
-

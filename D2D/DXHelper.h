@@ -1,26 +1,25 @@
 #pragma once
 
+#include <cstdlib>
+
 #include "../Support/WinInclude.h"
+#include "../Window.h"
 
 class DXHelper {
  public:
   DXHelper();
 
-  ComPtr<ID3D11Device> GetDevice() { 
-      return m_device; 
-  }
-  ComPtr<ID3D11DeviceContext> GetD3DDeviceContext() { 
-      return m_deviceContext; 
-  }
+  ComPtr<ID3D11Device> GetDevice() { return m_device; }
+  ComPtr<ID3D11DeviceContext> GetD3DDeviceContext() { return m_deviceContext; }
   ComPtr<ID2D1DeviceContext> GetD2DDeviceContext() {
     return m_D2DDeviceContext;
   }
 
-  public:
+ public:
   HRESULT ExtractVideoFrame(IMFSample *pSample,
-                             ID3D11Texture2D **ppVideoTexture);
+                            ID3D11Texture2D **ppVideoTexture);
   HRESULT CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
-                                   ComPtr<ID2D1Bitmap1> pBitmap);
+                                  ComPtr<ID2D1Bitmap1> pBitmap);
 
   HRESULT RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1>);
 

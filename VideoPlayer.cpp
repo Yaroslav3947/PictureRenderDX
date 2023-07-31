@@ -1,10 +1,7 @@
 #include "videoplayer.h"
 
 VideoPlayer::VideoPlayer(HWND hwmd)
-    : m_reader(nullptr),
-      m_hwnd(hwmd),
-      m_pSession(nullptr) {
-}
+    : m_reader(nullptr), m_hwnd(hwmd), m_pSession(nullptr) {}
 
 //-----------------------------------------------------------------------------
 // IUnknown Methods
@@ -44,7 +41,6 @@ HRESULT VideoPlayer::Initialize() {
   if (FAILED(hr)) {
     return hr;
   }
-
 
   m_dxhelper = std::make_unique<DXHelper>();
   if (m_dxhelper == nullptr) {
@@ -107,7 +103,6 @@ HRESULT VideoPlayer::CreateInstance(HWND hVideo, VideoPlayer **ppPlayer) {
   return S_OK;
 }
 
-
 HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
   if (!sURL) return E_INVALIDARG;
 
@@ -154,13 +149,11 @@ HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
   return hr;
 }
 
-
 //-----------------------------------------------------------------------------
 // Playback Methods
 //-----------------------------------------------------------------------------
 
 HRESULT VideoPlayer::Play() {
-
   if (!m_pSession) {
     return E_UNEXPECTED;
   }
@@ -216,8 +209,12 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
     OutputDebugStringA("EndOfStream\n");
     return S_OK;
   }
-  
-  OutputDebugStringA("OnReadSample()\n");
+
+  OutputDebugStringA("\nOnReadSample()\n");
+  static int sample = 0;
+  sample++;
+  std::string sam = std::to_string(sample);
+  OutputDebugString(sam.c_str());
 
   if (pSample) {
     ComPtr<ID3D11Texture2D> pVideoTexture;
@@ -267,6 +264,4 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
   return S_OK;
 }
 
-VideoPlayer::~VideoPlayer() {
-  Shutdown();
-}
+VideoPlayer::~VideoPlayer() { Shutdown(); }

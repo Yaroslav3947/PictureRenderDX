@@ -11,7 +11,9 @@ int CALLBACK WinMain(HINSTANCE appInstance, HINSTANCE prevInstance,
     std::unique_ptr<DXHelper> dxhelper = std::make_unique<DXHelper>();
 
     Window::Get().SetFullscreen(true);
+
     HWND hwnd = Window::Get().GetWindow();
+
     videoPlayer->CreateInstance(hwnd, &videoPlayer);
 
     const WCHAR* filePath = L"Resources/Videos/video.mp4";

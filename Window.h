@@ -4,20 +4,17 @@
 
 class Window {
  public:
-
   bool Init();
   void Update();
   void Shutdown();
   void Resize();
   void SetFullscreen(bool enabled);
-    
+
   void InitMenu();
 
   void CreateDevices();
-  void CreateRenderTarget();
 
-  void BeginFrame();
-  void EndFrame();
+  void Preset();
 
   inline bool ShouldClose() const { return m_shouldClose; }
   inline bool ShouldResize() const { return m_shouldResize; }
@@ -25,17 +22,14 @@ class Window {
 
   inline HWND GetWindow() { return m_hwnd; }
   inline ComPtr<ID3D11Device> GetDevice() { return m_device; }
-  //inline ComPtr<ID2D1RenderTarget> GetRenderTarget() { return m_renderTarget; }
   inline ComPtr<IDXGISwapChain> GetSwapChain() { return m_swapChain; }
-  inline ComPtr<ID3D11RenderTargetView> GetRenderTargetView() {
-    return m_renderTargetView;
-  }
 
  private:
   bool GetBuffers();
   void ReleaseBuffers();
   static LRESULT CALLBACK WinProc(HWND wnd, UINT msg, WPARAM wParam,
                                   LPARAM lParam);
+
  private:
   HWND m_hwnd;
   ATOM m_wndClass = 0;
@@ -44,14 +38,12 @@ class Window {
   bool m_shouldResize = false;
   bool m_isFullscreen = false;
 
-  UINT m_width =  1920;
+  UINT m_width = 1920;
   UINT m_height = 1080;
-    
+
   ComPtr<IDXGISwapChain> m_swapChain;
   ComPtr<ID3D11Device> m_device;
   ComPtr<ID3D11DeviceContext> m_deviceContext;
-  ComPtr<ID3D11RenderTargetView> m_renderTargetView;
-  D3D11_TEXTURE2D_DESC m_backBufferDesc;
 
   // singleton
  public:
