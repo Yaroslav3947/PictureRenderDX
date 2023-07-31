@@ -1,7 +1,11 @@
-#pragma once 
+#pragma once
 
+#include <chrono>
+
+#include "D2D/DXHelper.h"
 #include "Support/WinInclude.h"
-#include "DXHelper.h"
+
+
 
 class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
  public:
@@ -42,7 +46,7 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
 
   HRESULT Initialize();
   HRESULT CloseSession();
-  //    HRESULT CreateSession();
+  HRESULT CreateSession();
   HRESULT StartPlayback();
 
  protected:
@@ -50,7 +54,7 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   std::unique_ptr<DXHelper> m_dxhelper;
 
   long m_nRefCount;
-  HWND m_hwnd;  // Video window.
+  HWND m_hwnd;
 
   ComPtr<IMFMediaSession> m_pSession;
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Support/WinInclude.h"
+#include "../Support/WinInclude.h"
 
 class DXHelper {
  public:
@@ -22,15 +22,18 @@ class DXHelper {
   HRESULT CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
                                    ComPtr<ID2D1Bitmap1> pBitmap);
 
+  HRESULT RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1>);
+
  private:
   void Init();
 
  private:
   ComPtr<ID3D11Device> m_device;
   ComPtr<ID3D11DeviceContext> m_deviceContext;
-  ComPtr<ID2D1DeviceContext> m_deviceContext2D;
   ComPtr<ID3D11RenderTargetView> m_renderTargetView;
   ComPtr<ID2D1Factory1> m_factory;
   ComPtr<ID2D1Device> m_D2DDevice;
   ComPtr<ID2D1DeviceContext> m_D2DDeviceContext;
+
+  ComPtr<ID2D1RenderTarget> m_renderTarget;
 };

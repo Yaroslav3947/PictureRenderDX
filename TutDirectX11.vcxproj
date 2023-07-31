@@ -113,7 +113,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;d3d11.lib;d2d1.lib;dxguid.lib;mfplat.lib;mfuuid.lib;mfreadwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d11.lib;d2d1.lib;dxguid.lib;mfplat.lib;mfuuid.lib;winmm.lib;mfreadwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -160,8 +160,12 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Image.jpg" />
-    <Image Include="Picture.png" />
+    <Image Include="Resources\Images\Image.jpg" />
+    <Image Include="Resources\Images\Picture.png" />
+    <Image Include="Resources\Images\SampleBMP.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Resources\Videos\video.mp4" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

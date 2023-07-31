@@ -20,13 +20,16 @@ class Window {
   void EndFrame();
 
   inline bool ShouldClose() const { return m_shouldClose; }
-
   inline bool ShouldResize() const { return m_shouldResize; }
-
   inline bool IsFullscreen() const { return m_isFullscreen; }
 
   inline HWND GetWindow() { return m_hwnd; }
   inline ComPtr<ID3D11Device> GetDevice() { return m_device; }
+  //inline ComPtr<ID2D1RenderTarget> GetRenderTarget() { return m_renderTarget; }
+  inline ComPtr<IDXGISwapChain> GetSwapChain() { return m_swapChain; }
+  inline ComPtr<ID3D11RenderTargetView> GetRenderTargetView() {
+    return m_renderTargetView;
+  }
 
  private:
   bool GetBuffers();
@@ -41,10 +44,9 @@ class Window {
   bool m_shouldResize = false;
   bool m_isFullscreen = false;
 
-  UINT m_width = 1920;
+  UINT m_width =  1920;
   UINT m_height = 1080;
-
-  
+    
   ComPtr<IDXGISwapChain> m_swapChain;
   ComPtr<ID3D11Device> m_device;
   ComPtr<ID3D11DeviceContext> m_deviceContext;
