@@ -29,10 +29,9 @@ class DXHelper {
  private:
   ComPtr<ID3D11Device> m_device;
   ComPtr<ID3D11DeviceContext> m_deviceContext;
-  ComPtr<ID3D11RenderTargetView> m_renderTargetView;
+
   ComPtr<ID2D1Factory1> m_factory;
   ComPtr<ID2D1Device> m_D2DDevice;
   ComPtr<ID2D1DeviceContext> m_D2DDeviceContext;
-
   ComPtr<ID2D1RenderTarget> m_renderTarget;
 };

@@ -229,8 +229,8 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
       return hr;
     }
 
-    D2D1_BITMAP_PROPERTIES1 bitmapProperties;
-    bitmapProperties.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
+    D2D1_BITMAP_PROPERTIES1 bitmapProperties = {};
+    bitmapProperties.pixelFormat.format = DXGI_FORMAT_R8G8B8A8_UNORM;
     bitmapProperties.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
     bitmapProperties.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
     bitmapProperties.colorContext = nullptr;

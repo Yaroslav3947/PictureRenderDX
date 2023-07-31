@@ -2,6 +2,51 @@
 
 DXHelper::DXHelper() { Init(); }
 
+//HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
+//                                    ID3D11Texture2D** ppVideoTexture) {
+//  HRESULT hr = S_OK;
+//  ComPtr<IMFMediaBuffer> pBuffer;
+//  BYTE* pData = nullptr;
+//  DWORD cbData = 0;
+//
+//  hr = pSample->ConvertToContiguousBuffer(pBuffer.GetAddressOf());
+//  if (FAILED(hr)) {
+//    return hr;
+//  }
+//
+//  hr = pBuffer->Lock(&pData, nullptr, &cbData);
+//  if (FAILED(hr)) {
+//    return hr;
+//  }
+//
+//  D3D11_TEXTURE2D_DESC desc = {};
+//
+//  /// TODO: use settings of pSample for width and height
+//  desc.Width = 1920;
+//  desc.Height = 1080;
+//  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+//  desc.Usage = D3D11_USAGE_DEFAULT;
+//  desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+//  desc.CPUAccessFlags = 0;
+//  desc.MiscFlags = 0;
+//  desc.ArraySize = 1;
+//  desc.MipLevels = 1;
+//  desc.SampleDesc.Count = 1;
+//
+//  hr = m_device->CreateTexture2D(&desc, nullptr, ppVideoTexture);
+//  if (FAILED(hr)) {
+//    pBuffer->Unlock();
+//    return hr;
+//  }
+//
+//  m_deviceContext->UpdateSubresource(*ppVideoTexture, 0, nullptr, pData,
+//                                     desc.Width * 4, 0);
+//
+//  pBuffer->Unlock();
+//
+//  return hr;
+//}
+
 HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
                                     ID3D11Texture2D** ppVideoTexture) {
   HRESULT hr = S_OK;
@@ -21,7 +66,7 @@ HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
 
   D3D11_TEXTURE2D_DESC desc = {};
 
-  /// TODO: use settings of pSample for width and height
+  // TODO: Use settings of pSample for width and height
   desc.Width = 1920;
   desc.Height = 1080;
   desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -33,19 +78,22 @@ HRESULT DXHelper::ExtractVideoFrame(IMFSample* pSample,
   desc.MipLevels = 1;
   desc.SampleDesc.Count = 1;
 
-  hr = m_device->CreateTexture2D(&desc, nullptr, ppVideoTexture);
+  D3D11_SUBRESOURCE_DATA initialData = {};
+  initialData.pSysMem = pData;
+  initialData.SysMemPitch =
+      desc.Width * 4;  // Assuming 4 bytes per pixel (R8G8B8A8_UNORM)
+
+  hr = m_device->CreateTexture2D(&desc, &initialData, ppVideoTexture);
   if (FAILED(hr)) {
     pBuffer->Unlock();
     return hr;
   }
 
-  m_deviceContext->UpdateSubresource(*ppVideoTexture, 0, nullptr, pData,
-                                     desc.Width * 4, 0);
-
   pBuffer->Unlock();
 
   return hr;
 }
+
 
 HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
                                           ComPtr<ID2D1Bitmap1> pBitmap) {
@@ -69,34 +117,21 @@ HRESULT DXHelper::CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
 HRESULT DXHelper::RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1> pBitmap) {
   m_renderTarget->BeginDraw();
   m_renderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
-
-  // Generate three random colors
-  D2D1::ColorF colors[3] = {
-      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX),
-      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX),
-      D2D1::ColorF(static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX,
-                   static_cast<float>(rand()) / RAND_MAX)};
-
-  m_renderTarget->Clear(colors[0]);
+  m_renderTarget->Clear(D2D1::ColorF(D2D1::ColorF::MediumPurple));
 
   D2D1_SIZE_F renderTargetSize = m_renderTarget->GetSize();
   D2D1_SIZE_F bitmapSize = pBitmap->GetSize();
 
   // Calculate the position to draw the bitmap at the center of the render
   // target.
-  /*D2D1_POINT_2F upperLeftCorner =
+  D2D1_POINT_2F upperLeftCorner =
       D2D1::Point2F((renderTargetSize.width - bitmapSize.width) / 2.f,
                     (renderTargetSize.height - bitmapSize.height) / 2.f);
 
   m_renderTarget->DrawBitmap(
       pBitmap.Get(), D2D1::RectF(upperLeftCorner.x, upperLeftCorner.y,
                                  upperLeftCorner.x + bitmapSize.width,
-                                 upperLeftCorner.y + bitmapSize.height));*/
+                                 upperLeftCorner.y + bitmapSize.height));
 
   m_renderTarget->EndDraw();
 
