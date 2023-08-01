@@ -201,65 +201,18 @@ HRESULT VideoPlayer::Shutdown() {
 HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
                                   DWORD dwStreamFlags, LONGLONG llTimestamp,
                                   IMFSample *pSample) {
-  if (FAILED(hr)) {
-    return hr;
-  }
-
   if (dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) {
     OutputDebugStringA("EndOfStream\n");
     return S_OK;
   }
 
-  OutputDebugStringA("\nOnReadSample()\n");
-  static int sample = 0;
-  sample++;
-  std::string sam = std::to_string(sample);
-  OutputDebugString(sam.c_str());
+  ComPtr<ID2D1Bitmap> bitmap = m_dxhelper->CreateBitmapFromVideoSample(pSample);
 
-  if (pSample) {
-    ComPtr<ID3D11Texture2D> pVideoTexture;
-    hr = m_dxhelper->ExtractVideoFrame(pSample, pVideoTexture.GetAddressOf());
-    if (FAILED(hr)) {
-      return hr;
-    }
-
-    ComPtr<IDXGISurface> dxgiSurface;
-    hr = pVideoTexture->QueryInterface(dxgiSurface.GetAddressOf());
-    if (FAILED(hr)) {
-      return hr;
-    }
-
-    D2D1_BITMAP_PROPERTIES1 bitmapProperties = {};
-    bitmapProperties.pixelFormat.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    bitmapProperties.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
-    bitmapProperties.bitmapOptions = D2D1_BITMAP_OPTIONS_NONE;
-    bitmapProperties.colorContext = nullptr;
-
-    ComPtr<ID2D1Bitmap1> pBitmap;
-    hr = m_dxhelper->GetD2DDeviceContext()->CreateBitmapFromDxgiSurface(
-        dxgiSurface.Get(), &bitmapProperties, pBitmap.GetAddressOf());
-    if (FAILED(hr)) {
-      return hr;
-    }
-
-    hr =
-        m_dxhelper->CreateBitmapFromTexture(pVideoTexture.Get(), pBitmap.Get());
-    if (FAILED(hr)) {
-      return hr;
-    }
-
-    hr = m_dxhelper->RenderBitmapOnWindow(pBitmap.Get());
-    if (FAILED(hr)) {
-      return hr;
-    }
-  }
+  m_dxhelper->RenderBitmapOnWindow(bitmap);
 
   //// TODO: add delay
 
   hr = m_reader->ReadSample(dwStreamIndex, 0, NULL, NULL, NULL, NULL);
-  if (FAILED(hr)) {
-    return hr;
-  }
 
   return S_OK;
 }

@@ -16,12 +16,8 @@ class DXHelper {
   }
 
  public:
-  HRESULT ExtractVideoFrame(IMFSample *pSample,
-                            ID3D11Texture2D **ppVideoTexture);
-  HRESULT CreateBitmapFromTexture(ComPtr<ID3D11Texture2D> pTexture,
-                                  ComPtr<ID2D1Bitmap1> pBitmap);
-
-  HRESULT RenderBitmapOnWindow(ComPtr<ID2D1Bitmap1>);
+  void RenderBitmapOnWindow(ComPtr<ID2D1Bitmap> bitmap);
+  ComPtr<ID2D1Bitmap> CreateBitmapFromVideoSample(IMFSample *pSample);
 
  private:
   void Init();
