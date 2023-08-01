@@ -1,7 +1,6 @@
 #include "videoplayer.h"
 
-VideoPlayer::VideoPlayer(HWND hwmd)
-    : m_reader(nullptr), m_hwnd(hwmd), m_pSession(nullptr) {}
+VideoPlayer::VideoPlayer(HWND hwmd) : m_reader(nullptr), m_hwnd(hwmd) {}
 
 //-----------------------------------------------------------------------------
 // IUnknown Methods
@@ -50,36 +49,6 @@ HRESULT VideoPlayer::Initialize() {
   return S_OK;
 }
 
-HRESULT VideoPlayer::CloseSession() {
-  HRESULT hr = S_OK;
-
-  if (m_pSession) {
-    hr = m_pSession->Stop();
-    if (FAILED(hr)) {
-      return hr;
-    }
-
-    hr = m_pSession->Close();
-    if (FAILED(hr)) {
-      return hr;
-    }
-  }
-
-  return S_OK;
-}
-
-HRESULT VideoPlayer::StartPlayback() {
-  PROPVARIANT varStart;
-  PropVariantInit(&varStart);
-
-  HRESULT hr = m_pSession->Start(&GUID_NULL, &varStart);
-  if (SUCCEEDED(hr)) {  ////TODO: to think about enum PlayerState
-                        // Playback started successfully
-  }
-  PropVariantClear(&varStart);
-  return hr;
-}
-
 HRESULT VideoPlayer::CreateInstance(HWND hVideo, VideoPlayer **ppPlayer) {
   if (ppPlayer == nullptr) {
     return E_POINTER;
@@ -103,100 +72,43 @@ HRESULT VideoPlayer::CreateInstance(HWND hVideo, VideoPlayer **ppPlayer) {
   return S_OK;
 }
 
-HRESULT VideoPlayer::OpenURL(const WCHAR *sURL) {
-  if (!sURL) return E_INVALIDARG;
-
-  CloseSession();
+void VideoPlayer::OpenURL(const WCHAR *sURL) {
+  if (!sURL) return;
 
   ComPtr<IMFAttributes> pAttributes;
-  HRESULT hr = MFCreateAttributes(pAttributes.GetAddressOf(), 1);
-  if (FAILED(hr)) return hr;
+  MFCreateAttributes(pAttributes.GetAddressOf(), 1);
 
   // Enable hardware transforms and video processing
-  hr = pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
-  if (FAILED(hr)) return hr;
+  pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
 
-  hr = pAttributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
-  if (FAILED(hr)) return hr;
+  pAttributes->SetUINT32(MF_SOURCE_READER_ENABLE_VIDEO_PROCESSING, TRUE);
 
   // Set the output media type to RGB32 format
   ComPtr<IMFMediaType> pMediaTypeOut;
-  hr = MFCreateMediaType(pMediaTypeOut.GetAddressOf());
-  if (FAILED(hr)) return hr;
+  MFCreateMediaType(pMediaTypeOut.GetAddressOf());
 
-  hr = pMediaTypeOut->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-  if (FAILED(hr)) return hr;
+  pMediaTypeOut->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
 
-  hr = pMediaTypeOut->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
-  if (FAILED(hr)) return hr;
+  pMediaTypeOut->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
 
   // Set the asynchronous callback for the source reader
-  hr = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
-                               static_cast<IMFSourceReaderCallback *>(this));
-  if (FAILED(hr)) return hr;
+  pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK,
+                          static_cast<IMFSourceReaderCallback *>(this));
 
-  hr = MFCreateSourceReaderFromURL(sURL, pAttributes.Get(),
-                                   m_reader.GetAddressOf());
-  if (FAILED(hr)) return hr;
+  MFCreateSourceReaderFromURL(sURL, pAttributes.Get(), m_reader.GetAddressOf());
 
   // Set the output media type for the video stream
-  hr = m_reader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-                                     nullptr, pMediaTypeOut.Get());
-  if (FAILED(hr)) return hr;
+  m_reader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr,
+                                pMediaTypeOut.Get());
 
-  hr = m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr,
-                            nullptr, nullptr, nullptr);
-  return hr;
+  m_reader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr,
+                       nullptr, nullptr);
+  return;
 }
 
 //-----------------------------------------------------------------------------
 // Playback Methods
 //-----------------------------------------------------------------------------
-
-HRESULT VideoPlayer::Play() {
-  if (!m_pSession) {
-    return E_UNEXPECTED;
-  }
-  return StartPlayback();
-}
-
-HRESULT VideoPlayer::Pause() {
-  if (!m_pSession) return E_UNEXPECTED;
-
-  HRESULT hr = m_pSession->Pause();
-  if (SUCCEEDED(hr)) {
-    // Handle successful pause operation
-  }
-
-  return hr;
-}
-
-HRESULT VideoPlayer::Stop() {
-  if (!m_pSession) {
-    return E_UNEXPECTED;
-  }
-
-  HRESULT hr = m_pSession->Stop();
-  if (SUCCEEDED(hr)) {
-    // Handle successful stop operation
-  }
-  return hr;
-}
-
-HRESULT VideoPlayer::Shutdown() {
-  HRESULT hr = S_OK;
-
-  hr = CloseSession();
-
-  MFShutdown();
-
-  if (m_pSession) {
-    hr = m_pSession->Shutdown();
-    if (FAILED(hr)) return hr;
-  }
-
-  return hr;
-}
 
 HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
                                   DWORD dwStreamFlags, LONGLONG llTimestamp,
@@ -217,4 +129,4 @@ HRESULT VideoPlayer::OnReadSample(HRESULT hr, DWORD dwStreamIndex,
   return S_OK;
 }
 
-VideoPlayer::~VideoPlayer() { Shutdown(); }
+VideoPlayer::~VideoPlayer() { MFShutdown(); }

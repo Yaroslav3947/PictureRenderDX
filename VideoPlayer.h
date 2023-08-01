@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include "D2D/DXHelper.h"
 #include "Support/WinInclude.h"
 
@@ -9,11 +7,9 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
  public:
   static HRESULT CreateInstance(HWND hwnd, VideoPlayer **ppPlayer);
   // Playback
-  HRESULT OpenURL(const WCHAR *sURL);
-  HRESULT Play();
-  HRESULT Pause();
-  HRESULT Stop();
-  HRESULT Shutdown();
+  void OpenURL(const WCHAR *sURL);
+ /* void Play();
+  void Pause();*/
 
   // IUnknown methods
   STDMETHODIMP QueryInterface(REFIID iid, void **ppv) override;
@@ -24,13 +20,9 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   STDMETHODIMP OnEvent(DWORD, IMFMediaEvent *) override { return S_OK; }
   STDMETHODIMP OnFlush(DWORD) override { return S_OK; }
   STDMETHODIMP
-  GetParameters(DWORD *, DWORD *) override {  ////TODO: complete this method
-    return E_NOTIMPL;
-  }
+  GetParameters(DWORD *, DWORD *) override { return E_NOTIMPL; }
   STDMETHODIMP
-  Invoke(IMFAsyncResult *pResult) override {  ////TODO: complete this method
-    return S_OK;
-  }
+  Invoke(IMFAsyncResult *pResult) override { return S_OK; }
 
   // IMFSourceReaderCallback methods
   HRESULT OnReadSample(HRESULT hr, DWORD dwStreamIndex, DWORD dwStreamFlags,
@@ -42,9 +34,6 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   VideoPlayer(HWND hwnd);
 
   HRESULT Initialize();
-  HRESULT CloseSession();
-  HRESULT CreateSession();
-  HRESULT StartPlayback();
 
  protected:
   ComPtr<IMFSourceReader> m_reader;
@@ -52,6 +41,4 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
 
   long m_nRefCount;
   HWND m_hwnd;
-
-  ComPtr<IMFMediaSession> m_pSession;
 };
