@@ -24,9 +24,6 @@
     <ClCompile Include="D2D\DXHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Picture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Support\WICTextureLoader11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -41,9 +38,6 @@
     <ClInclude Include="D2D\DXHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Picture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Support\WinInclude.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -53,10 +47,6 @@
     <ClInclude Include="VideoPlayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\TriangleVertexShader.hlsl" />
-    <FxCompile Include="Shaders\TrianglePixelShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Image.jpg">
