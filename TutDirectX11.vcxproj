@@ -136,28 +136,16 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="D2D\DXHelper.cpp" />
-    <ClCompile Include="Picture.cpp" />
     <ClCompile Include="VideoPlayer.cpp" />
     <ClCompile Include="Support\WICTextureLoader11.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D2D\DXHelper.h" />
-    <ClInclude Include="Picture.h" />
     <ClInclude Include="VideoPlayer.h" />
     <ClInclude Include="Support\WICTextureLoader11.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="Support\WinInclude.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Shaders\TrianglePixelShader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
-    <FxCompile Include="Shaders\TriangleVertexShader.hlsl">
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
-      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename).cso</ObjectFileOutput>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\Images\Image.jpg" />
