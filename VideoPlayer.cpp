@@ -1,6 +1,4 @@
-#include "videoplayer.h"
-
-VideoPlayer::VideoPlayer(HWND hwmd) : m_reader(nullptr), m_hwnd(hwmd) {}
+#include "VideoPlayer.h"
 
 //-----------------------------------------------------------------------------
 // IUnknown Methods
@@ -35,7 +33,11 @@ ULONG VideoPlayer::Release() {
   return uCount;
 }
 
-HRESULT VideoPlayer::Initialize() {
+HRESULT VideoPlayer::Initialize(HWND &hwnd) {
+  m_hwnd = hwnd;
+  m_nRefCount = 1;
+  m_reader = nullptr;
+
   HRESULT hr = MFStartup(MF_VERSION);
   if (FAILED(hr)) {
     return hr;
@@ -45,29 +47,6 @@ HRESULT VideoPlayer::Initialize() {
   if (m_dxhelper == nullptr) {
     return E_FAIL;
   }
-
-  return S_OK;
-}
-
-HRESULT VideoPlayer::CreateInstance(HWND hVideo, VideoPlayer **ppPlayer) {
-  if (ppPlayer == nullptr) {
-    return E_POINTER;
-  }
-
-  *ppPlayer = nullptr;
-
-  VideoPlayer *pPlayer = new (std::nothrow) VideoPlayer(hVideo);
-  if (pPlayer == nullptr) {
-    return E_OUTOFMEMORY;
-  }
-
-  HRESULT hr = pPlayer->Initialize();
-  if (FAILED(hr)) {
-    delete pPlayer;
-    return hr;
-  }
-
-  *ppPlayer = pPlayer;
 
   return S_OK;
 }

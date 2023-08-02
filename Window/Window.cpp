@@ -1,0 +1,266 @@
+#include "Window.h"
+#include <wincodec.h>
+
+void OpenFile(HWND &hwnd);
+void HandleMenuMessage(HWND hwnd, WPARAM wparam);
+
+bool Window::Init() {
+  // Window class
+  WNDCLASSEXW wcex{};
+  wcex.cbSize = sizeof(wcex);
+  wcex.style = CS_OWNDC;
+  wcex.lpfnWndProc = &WinProc;
+  wcex.cbClsExtra = 0;
+  wcex.cbWndExtra = 0;
+  wcex.hInstance = GetModuleHandleW(nullptr);
+  wcex.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+  wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+  wcex.hbrBackground = nullptr;
+  wcex.lpszMenuName = nullptr;
+  wcex.lpszClassName = L"VideoPlayer";
+  wcex.hIconSm = LoadIcon(nullptr, IDI_APPLICATION);
+  m_wndClass = RegisterClassExW(&wcex);
+  if (m_wndClass == 0) {
+    return false;
+  }
+
+  // Register the window class for GUI child window
+  WNDCLASSEXW wcexGUI{};
+  wcexGUI.cbSize = sizeof(wcexGUI);
+  wcexGUI.style = CS_HREDRAW | CS_VREDRAW;
+  wcexGUI.lpfnWndProc = &WinProc;  // Use the same WinProc function
+  wcexGUI.cbClsExtra = 0;
+  wcexGUI.cbWndExtra = 0;
+  wcexGUI.hInstance = GetModuleHandleW(nullptr);
+  wcexGUI.hIcon = nullptr;  // Optional: Set the icon for the GUI window
+  wcexGUI.hCursor = LoadCursor(nullptr, IDC_ARROW);
+  wcexGUI.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
+  wcexGUI.lpszMenuName = nullptr;
+  wcexGUI.lpszClassName =
+      L"VideoPlayer_GUI";     // Use a different class name for GUI window
+  wcexGUI.hIconSm = nullptr;  // Optional: Set the small icon for the GUI window
+  RegisterClassExW(&wcexGUI);
+
+  // Place window on current screen
+  POINT pos{0, 0};
+  GetCursorPos(&pos);
+  HMONITOR monitor = MonitorFromPoint(pos, MONITOR_DEFAULTTOPRIMARY);
+  MONITORINFO monitorInfo{};
+  monitorInfo.cbSize = sizeof(monitorInfo);
+  GetMonitorInfoW(monitor, &monitorInfo);
+
+  // Window
+  m_hwnd = CreateWindowExW(
+      WS_EX_OVERLAPPEDWINDOW | WS_EX_APPWINDOW, (LPCWSTR)m_wndClass,
+      L"VideoPlayer", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+      monitorInfo.rcWork.left + 100, monitorInfo.rcWork.top + 100, 1920, 1080,
+      nullptr, nullptr, wcex.hInstance, this);
+  if (m_hwnd == 0) {
+    return false;
+  }
+
+
+
+  //InitMenu();
+  InitButtons();
+
+  //CreateDevices();
+
+
+  return true;
+}
+
+void Window::CreateDevices() {
+  DXGI_SWAP_CHAIN_DESC desc = {};
+  desc.BufferDesc.Width = 1920;
+  desc.BufferDesc.Height = 1080;
+  desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+  desc.BufferDesc.RefreshRate.Numerator = 0;
+  desc.BufferDesc.RefreshRate.Denominator = 0;
+  desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+  desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+  desc.SampleDesc.Count = 1;
+  desc.SampleDesc.Quality = 0;
+  desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  desc.BufferCount = 2;
+  desc.OutputWindow = m_hwnd;
+  desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+  desc.Windowed = true;
+
+  D3D_FEATURE_LEVEL levels[] = {D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
+                                D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
+                                D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
+                                D3D_FEATURE_LEVEL_11_1};
+
+  UINT deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
+  D3D_FEATURE_LEVEL m_featureLevel;
+
+  HRESULT hr = D3D11CreateDeviceAndSwapChain(
+      nullptr, D3D_DRIVER_TYPE::D3D_DRIVER_TYPE_HARDWARE, nullptr, deviceFlags,
+      levels, ARRAYSIZE(levels), D3D11_SDK_VERSION, &desc,
+      m_swapChain.GetAddressOf(), m_device.GetAddressOf(), &m_featureLevel,
+      m_deviceContext.GetAddressOf());
+}
+
+void Window::Update() {
+  MSG msg = {0};
+  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
+    if (msg.message == WM_QUIT) {
+      break;
+    }
+
+    TranslateMessage(&msg);
+    DispatchMessage(&msg);
+  }
+}
+
+void Window::Shutdown() {
+  if (m_hwnd) {
+    DestroyWindow(m_hwnd);
+  }
+
+  if (m_wndClass) {
+    UnregisterClassW((LPCWSTR)m_wndClass, GetModuleHandleW(nullptr));
+  }
+}
+
+void Window::Resize() {
+  RECT cr;
+  if (GetClientRect(m_hwnd, &cr)) {
+    m_width = cr.right - cr.left;
+    m_height = cr.bottom - cr.top;
+
+    m_swapChain->ResizeBuffers(1, m_width, m_height, DXGI_FORMAT_UNKNOWN,
+                               DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING |
+                                   DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING);
+    m_shouldResize = false;
+  }
+}
+
+void Window::SetFullscreen(bool enabled) {
+  // Update window styling
+  DWORD style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+  DWORD exStyle = WS_EX_OVERLAPPEDWINDOW | WS_EX_APPWINDOW;
+  if (enabled) {
+    style = WS_POPUP | WS_VISIBLE;
+    exStyle = WS_EX_APPWINDOW;
+  }
+  SetWindowLongW(m_hwnd, GWL_STYLE, style);
+  SetWindowLongW(m_hwnd, GWL_EXSTYLE, exStyle);
+
+  // Adjust window size
+  if (enabled) {
+    HMONITOR monitor = MonitorFromWindow(m_hwnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO monitorInfo{};
+    monitorInfo.cbSize = sizeof(monitorInfo);
+    if (GetMonitorInfoW(monitor, &monitorInfo)) {
+      SetWindowPos(m_hwnd, nullptr, monitorInfo.rcMonitor.left,
+                   monitorInfo.rcMonitor.top,
+                   monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+                   monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+                   SWP_NOZORDER);
+    }
+  } else {
+    ShowWindow(m_hwnd, SW_MAXIMIZE);
+  }
+
+  m_isFullscreen = enabled;
+}
+
+void Window::Preset() {
+  m_swapChain->Present(1, 0);  // 1 - VSync
+}
+
+void Window::InitMenu() {
+  HMENU hMenu = CreateMenu();
+  HMENU hSubMenu = CreatePopupMenu();
+  AppendMenu(hSubMenu, MF_STRING, 1, "Open File");
+  AppendMenu(hMenu, MF_POPUP, reinterpret_cast<UINT_PTR>(hSubMenu), "File");
+
+  // Attach the menu to the window
+  SetMenu(m_hwnd, hMenu);
+}
+
+void Window::InitButtons() { 
+    InitPauseButton(); 
+}
+
+void Window::InitPauseButton() {
+  m_pauseButton =
+      CreateWindowEx(0, "BUTTON", "Pause", WS_CHILD | WS_VISIBLE, 10, 10, 100,
+                     50, m_hwnd, NULL, GetModuleHandle(NULL), NULL);
+}
+
+LRESULT CALLBACK Window::WinProc(HWND wnd, UINT msg, WPARAM wParam,
+                                 LPARAM lParam) {
+  switch (msg) {
+    case WM_KEYDOWN: {
+      if (wParam == VK_F11) {
+        Get().SetFullscreen(!Get().IsFullscreen());
+      }
+      break;
+    }
+    case WM_SIZE: {
+      if (lParam && (HIWORD(lParam) != Get().m_height ||
+                     LOWORD(lParam) != Get().m_width)) {
+        Get().m_shouldResize = true;
+      }
+      break;
+    }
+    case WM_CLOSE: {
+      Get().m_shouldClose = true;
+      return 0;
+    }
+    case WM_COMMAND: {
+      //HandleMenuMessage(wnd, wParam);
+      HWND buttonHandle = reinterpret_cast<HWND>(lParam);
+      if (buttonHandle == Get().m_pauseButton) {
+        // Handle the pause button click here
+        // Example: Call a function that handles the pause functionality
+        // Example: HandlePauseButtonClick();
+
+          OutputDebugString("Pause button clicked!\n");
+      }
+      break;
+    }
+  }
+  return DefWindowProcW(wnd, msg, wParam, lParam);
+}
+
+void HandleMenuMessage(HWND hwnd, WPARAM wparam) {
+  enum class MenuOption {
+    OpenFile = 1,
+  };
+  MenuOption selectedOption = static_cast<MenuOption>(LOWORD(wparam));
+
+  switch (selectedOption) {
+    case MenuOption::OpenFile:
+      OpenFile(hwnd);
+      break;
+
+    default:
+      break;
+  }
+
+   /*     if (wParam == 2) {
+    OutputDebugString("Pause button clicked!\n");
+  }*/
+}
+
+void OpenFile(HWND &hwnd) {
+  OPENFILENAMEW ofn;
+  wchar_t szFileName[MAX_PATH] = {0};
+
+  ZeroMemory(&ofn, sizeof(ofn));
+  ofn.lStructSize = sizeof(ofn);
+  ofn.hwndOwner = hwnd;
+  ofn.lpstrFilter = L"All Files (*.*)\0*.*\0";
+
+  ofn.lpstrFile = szFileName;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+
+  if (GetOpenFileNameW(&ofn)) {
+  }
+}

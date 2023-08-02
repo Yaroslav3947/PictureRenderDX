@@ -5,7 +5,9 @@
 
 class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
  public:
-  static HRESULT CreateInstance(HWND hwnd, VideoPlayer **ppPlayer);
+  virtual ~VideoPlayer();
+  HRESULT Initialize(HWND &hwnd);
+
   // Playback
   void OpenURL(const WCHAR *sURL);
  /* void Play();
@@ -28,17 +30,20 @@ class VideoPlayer : public IMFAsyncCallback, public IMFSourceReaderCallback {
   HRESULT OnReadSample(HRESULT hr, DWORD dwStreamIndex, DWORD dwStreamFlags,
                        LONGLONG llTimestamp, IMFSample *pSample) override;
 
-  virtual ~VideoPlayer();
-
- protected:
-  VideoPlayer(HWND hwnd);
-
-  HRESULT Initialize();
-
  protected:
   ComPtr<IMFSourceReader> m_reader;
   std::unique_ptr<DXHelper> m_dxhelper;
 
   long m_nRefCount;
   HWND m_hwnd;
+
+ public:
+  VideoPlayer(const VideoPlayer &) = delete;
+  VideoPlayer &operator=(const VideoPlayer &) = delete;
+
+  static VideoPlayer &Get() {
+    static VideoPlayer instance;
+    return instance;
+  }
+  VideoPlayer() = default;
 };
